@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 
 import AuthError from "../utils/appError";
-import { AUTH_ERROR_CODE } from "../utils/constants/errorsCode";
+import { AUTH_ERROR_CODE } from "../utils/constants/errorsCode.constants";
 
 export interface IUser {
 	name: string;
@@ -30,10 +30,7 @@ export const userSchema = new Schema<IUser>(
 			minlength: [3, "Символов в названии должно быть от 3 до 30"],
 			maxlength: [100, "Символов в названии должно быть от 3 до 100"],
 		},
-		role: {
-			type: String,
-			default: "user",
-		},
+		role: { type: String, default: "user" },
 		email: {
 			type: String,
 			required: [true, 'Поле "email" должно быть заполнено'],
@@ -44,18 +41,9 @@ export const userSchema = new Schema<IUser>(
 			required: [true, 'Поле "Пароль" должно быть заполнено'],
 			select: false,
 		},
-		phoneNumber: {
-			type: String,
-			default: "-",
-		},
-		birthday: {
-			type: String,
-			default: "-",
-		},
-		clientCard: {
-			type: String,
-			default: "-",
-		},
+		phoneNumber: { type: String, default: "-" },
+		birthday: { type: String, default: "-" },
+		clientCard: { type: String, default: "-" },
 		address: {
 			postIndex: { type: String, default: "-" },
 			town: { type: String, default: "-" },
@@ -68,25 +56,6 @@ export const userSchema = new Schema<IUser>(
 	},
 	{
 		versionKey: false,
-		// statics: {
-		// 	async findUserByCredentials(email, password) {
-		// 		const user = await this.findOne({ email }).select("+password");
-		// 		if (!user) {
-		// 			throw new AuthError(
-		// 				"Неправильные почта или пароль",
-		// 				AUTH_ERROR_CODE
-		// 			);
-		// 		}
-		// 		const matched = await bcrypt.compare(password, user.password);
-		// 		if (!matched) {
-		// 			throw new AuthError(
-		// 				"Неправильные почта или пароль",
-		// 				AUTH_ERROR_CODE
-		// 			);
-		// 		}
-		// 		return user;
-		// 	},
-		// },
 	}
 );
 

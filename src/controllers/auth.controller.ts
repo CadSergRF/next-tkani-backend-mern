@@ -1,22 +1,27 @@
-import { CREATED_CODE } from "./../utils/constants/errorsCode";
+import { CREATED_CODE } from "../utils/constants/errorsCode.constants";
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.model";
 
+import AppError from "../utils/appError";
+
 import {
 	BAD_REQUEST_CODE,
 	DUPLICATE_KEY_ERROR,
 	NOT_FOUND_CODE,
-} from "../utils/constants/errorsCode";
+} from "../utils/constants/errorsCode.constants";
 
-import AppError from "../utils/appError";
+import {
+	SuccessMessage,
+	ErrorMessage,
+} from "../utils/constants/responseMessage.constants";
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN, COOKIES_LOGIN } = process.env;
 
 export const checkReq = (req: Request, res: Response) => {
-	res.send("Запрос получен");
+	res.json({ message: "Запрос получен" });
 };
 
 export const registration = async (
@@ -49,16 +54,13 @@ export const registration = async (
 		});
 		await newUser.save();
 		// Формируем ответ сервера
-		res.status(CREATED_CODE).send({
-			message: "Вы успешно зарегистрировались",
+		res.status(CREATED_CODE).json({
+			message: `${SuccessMessage.REGISTER_MESSAGE}`,
 		});
 	} catch (err: any) {
 		if (err.code === 11000) {
 			next(
-				new AppError(
-					"Пользователь с указанным email уже зарегистрирован.",
-					DUPLICATE_KEY_ERROR
-				)
+				new AppError(ErrorMessage.DUPLICATE_EMAIL, DUPLICATE_KEY_ERROR)
 			);
 			return;
 		}
@@ -68,7 +70,7 @@ export const registration = async (
 				.join(" ");
 			next(
 				new AppError(
-					`Не корректные данные при создании пользователя ${errorMessage}`,
+					`${ErrorMessage.BAD_REQUEST_MESSAGE_DATA} ${errorMessage}`,
 					BAD_REQUEST_CODE
 				)
 			);
@@ -88,12 +90,18 @@ export const login = async (
 		const user = await User.findOne({ email }).select("+password");
 		// Пользователь есть?
 		if (!user) {
-			throw new AppError("Неправильные почта или пароль", NOT_FOUND_CODE);
+			throw new AppError(
+				ErrorMessage.BAD_EMAIL_OR_PASSWORD,
+				NOT_FOUND_CODE
+			);
 		}
 		// Проверяем пароль
 		const matched = bcrypt.compare(user.password, password);
 		if (!matched) {
-			throw new AppError("Неправильные почта или пароль", NOT_FOUND_CODE);
+			throw new AppError(
+				ErrorMessage.BAD_EMAIL_OR_PASSWORD,
+				NOT_FOUND_CODE
+			);
 		}
 
 		const secretKey: string =
@@ -105,24 +113,30 @@ export const login = async (
 			expiresIn: "7d",
 		});
 		// Передаем токен в куки
-		res.cookie("ttjwt", token, {
+		const jwtKey: string =
+			NODE_ENV && COOKIES_TOKEN && NODE_ENV === "production"
+				? COOKIES_TOKEN
+				: "jwt";
+		res.cookie(jwtKey, token, {
 			maxAge: 3600000 * 24 * 7,
 			httpOnly: true,
 			sameSite: true,
 		});
 		// Передает в куки флаг LoggedIn с возможностью доступа к флагу
-		res.cookie("ttLoggedIn", true, {
+		const loginKey: string =
+			NODE_ENV && COOKIES_LOGIN && NODE_ENV === "production"
+				? COOKIES_LOGIN
+				: "loggedIn";
+		res.cookie(loginKey, true, {
 			maxAge: 3600000 * 24 * 7,
 			httpOnly: false,
 			sameSite: true,
 		});
 		// Предаем статус 200
-		res.status(200).send({
-			message: "Вы успешно авторизовались на сайте",
-		});
+		res.status(200).send(SuccessMessage.LOGIN_MESSAGE);
 	} catch (err: any) {
 		if (err.name === "ValidationError") {
-			next(new AppError("Ошибка авторизации", BAD_REQUEST_CODE));
+			next(new AppError(ErrorMessage.BAD_REQUEST_CODE, BAD_REQUEST_CODE));
 		} else {
 			next(err);
 		}
@@ -132,5 +146,5 @@ export const login = async (
 export const logout = (res: Response) => {
 	res.clearCookie("ttjwt")
 		.clearCookie("ttLoggedIn")
-		.send("Вы вышли из аккаунта");
+		.send(SuccessMessage.LOGOUT_MESSAGE);
 };
