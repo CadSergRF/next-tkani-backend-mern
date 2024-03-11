@@ -18,10 +18,30 @@ import {
 	ErrorMessage,
 } from "../utils/constants/responseMessage.constants";
 
-const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN, COOKIES_LOGIN } = process.env;
+const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN_NAME, COOKIES_LOGIN } = process.env;
 
-export const checkReq = (req: Request, res: Response) => {
+export const checkReq = (req: Request, res: Response, next: NextFunction) => {
 	res.json({ message: "Запрос получен" });
+	next();
+};
+
+export const checkUserLogin = (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const secretKey: string =
+		NODE_ENV && JWT_SECRET && NODE_ENV === "production"
+			? JWT_SECRET
+			: "some-secret-key";
+
+	const token = jwt.sign({ _id: "userId" }, secretKey, {
+		expiresIn: "7d",
+	});
+	res.json({ secret: token });
+
+	// res.json({ message: "Запрос получен" });
+	next();
 };
 
 export const registration = async (
@@ -114,22 +134,12 @@ export const login = async (
 		});
 		// Передаем токен в куки
 		const jwtKey: string =
-			NODE_ENV && COOKIES_TOKEN && NODE_ENV === "production"
-				? COOKIES_TOKEN
+			NODE_ENV && COOKIES_TOKEN_NAME && NODE_ENV === "production"
+				? COOKIES_TOKEN_NAME
 				: "jwt";
 		res.cookie(jwtKey, token, {
 			maxAge: 3600000 * 24 * 7,
 			httpOnly: true,
-			sameSite: true,
-		});
-		// Передает в куки флаг LoggedIn с возможностью доступа к флагу
-		const loginKey: string =
-			NODE_ENV && COOKIES_LOGIN && NODE_ENV === "production"
-				? COOKIES_LOGIN
-				: "loggedIn";
-		res.cookie(loginKey, true, {
-			maxAge: 3600000 * 24 * 7,
-			httpOnly: false,
 			sameSite: true,
 		});
 		// Предаем статус 200
