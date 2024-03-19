@@ -18,30 +18,52 @@ import {
 	ErrorMessage,
 } from "../utils/constants/responseMessage.constants";
 
-const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN_NAME, COOKIES_LOGIN } = process.env;
+const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN_NAME } = process.env;
+
+const findUser = async (data: string) => {
+	try {
+		const user = await User.findById(data);
+		if (!user) {
+			throw new AppError(ErrorMessage.NOT_FOUND_USER, NOT_FOUND_CODE);
+		}
+		// console.log("USER", user);
+		return user;
+	} catch (error) {
+		throw new AppError(ErrorMessage.BAD_REQUEST_MESSAGE_ID, NOT_FOUND_CODE);
+	}
+};
 
 export const checkReq = (req: Request, res: Response, next: NextFunction) => {
 	res.json({ message: "Запрос получен" });
 	next();
 };
 
-export const checkUserLogin = (
+export const checkUserLogin = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
-	const secretKey: string =
-		NODE_ENV && JWT_SECRET && NODE_ENV === "production"
-			? JWT_SECRET
-			: "some-secret-key";
+	try {
+		const user = await findUser("65eefa159a13c0a68eb91802");
+		if (!user) {
+			throw new AppError(ErrorMessage.NOT_FOUND_USER, NOT_FOUND_CODE);
+		}
 
-	const token = jwt.sign({ _id: "userId" }, secretKey, {
-		expiresIn: "7d",
-	});
-	res.json({ secret: token });
+		// Деструк. для id в cookies пользователя в стейт
+		const { _id, ...userForSend } = user.toObject();
 
-	// res.json({ message: "Запрос получен" });
-	next();
+		const secretKey: string =
+			NODE_ENV && JWT_SECRET && NODE_ENV === "production"
+				? JWT_SECRET
+				: "some-secret-key";
+		const token = jwt.sign({ _id: _id }, secretKey, {
+			expiresIn: "7d",
+		});
+
+		res.json({ secret: token, user: userForSend });
+	} catch (err) {
+		next(err);
+	}
 };
 
 export const registration = async (
@@ -76,6 +98,7 @@ export const registration = async (
 		// Формируем ответ сервера
 		res.status(CREATED_CODE).json({
 			message: `${SuccessMessage.REGISTER_MESSAGE}`,
+			user: newUser,
 		});
 	} catch (err: any) {
 		if (err.code === 11000) {

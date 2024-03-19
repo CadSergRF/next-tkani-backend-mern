@@ -7,6 +7,7 @@ const INTERNAL_SERVER_ERROR_MESSAGE = "На сервере произошла о
 const DUPLICATE_EMAIL = "Пользователь с указанным email уже зарегистрирован.";
 const BAD_EMAIL_OR_PASSWORD = "Неправильные почта или пароль";
 const BAD_REQUEST_CODE = "Ошибка авторизации";
+const NOT_FOUND_USER = "Пользователь с указанным Id  не найден";
 
 // SUCCESSFUL MESSAGE
 const REGISTER_MESSAGE = "Вы успешно зарегистрировались";
@@ -22,6 +23,7 @@ const ErrorMessage = {
 	BAD_EMAIL_OR_PASSWORD,
 	DUPLICATE_EMAIL,
 	BAD_REQUEST_CODE,
+	NOT_FOUND_USER,
 };
 
 const SuccessMessage = {
