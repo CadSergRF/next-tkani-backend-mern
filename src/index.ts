@@ -8,6 +8,7 @@ import cors from "cors";
 
 import { mongoConfig } from "./utils/connectDB";
 import authRouter from "./routes/auth.router";
+import errorHandler from "./middlewares/errors.mw";
 
 const app = express();
 
@@ -32,7 +33,8 @@ app.use(express.json())
 	.use(bodyParser.json())
 	.use(helmet())
 	.use(cookieParser())
-	.use("/", authRouter);
+	.use("/", authRouter)
+	.use(errorHandler);
 // .use('/', shopRoutes)
 // .use('/', adminRoutes)
 

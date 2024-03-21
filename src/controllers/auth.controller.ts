@@ -17,8 +17,14 @@ import {
 	SuccessMessage,
 	ErrorMessage,
 } from "../utils/constants/responseMessage.constants";
+import { TUserFull } from "../types/user.types";
 
-const { NODE_ENV, JWT_SECRET, COOKIES_TOKEN_NAME } = process.env;
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+const handleUserWithOutPassword = (user: TUserFull) => {
+	const { password, ...userWithOutPassword } = user;
+	return userWithOutPassword;
+};
 
 const findUser = async (data: string) => {
 	try {
@@ -26,7 +32,6 @@ const findUser = async (data: string) => {
 		if (!user) {
 			throw new AppError(ErrorMessage.NOT_FOUND_USER, NOT_FOUND_CODE);
 		}
-		// console.log("USER", user);
 		return user;
 	} catch (error) {
 		throw new AppError(ErrorMessage.BAD_REQUEST_MESSAGE_ID, NOT_FOUND_CODE);
@@ -38,29 +43,34 @@ export const checkReq = (req: Request, res: Response, next: NextFunction) => {
 	next();
 };
 
+const secretToken = (key: string): string => {
+	const secretKey: string =
+		NODE_ENV && JWT_SECRET && NODE_ENV === "production"
+			? JWT_SECRET
+			: "some-secret-key";
+	const token = jwt.sign({ _id: key }, secretKey, {
+		expiresIn: "365d",
+	});
+
+	return token;
+};
+
 export const checkUserLogin = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		const user = await findUser("65eefa159a13c0a68eb91802");
+		const { token } = req.body;
+		const user = await findUser(token._id);
 		if (!user) {
 			throw new AppError(ErrorMessage.NOT_FOUND_USER, NOT_FOUND_CODE);
 		}
 
-		// Деструк. для id в cookies пользователя в стейт
-		const { _id, ...userForSend } = user.toObject();
+		// Деструктуризация для id в cookies пользователя в стейт
+		const { _id, password, ...userForSend } = user.toObject();
 
-		const secretKey: string =
-			NODE_ENV && JWT_SECRET && NODE_ENV === "production"
-				? JWT_SECRET
-				: "some-secret-key";
-		const token = jwt.sign({ _id: _id }, secretKey, {
-			expiresIn: "7d",
-		});
-
-		res.json({ secret: token, user: userForSend });
+		res.json({ loggedIn: true, user: userForSend });
 	} catch (err) {
 		next(err);
 	}
@@ -128,7 +138,10 @@ export const login = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	console.log("login");
+
 	const { email, password } = req.body;
+
 	try {
 		const user = await User.findOne({ email }).select("+password");
 		// Пользователь есть?
@@ -147,26 +160,14 @@ export const login = async (
 			);
 		}
 
-		const secretKey: string =
-			NODE_ENV && JWT_SECRET && NODE_ENV === "production"
-				? JWT_SECRET
-				: "some-secret-key";
+		// Деструктуризация для id в cookies пользователя в стейт
+		const { _id, ...userForSend } = handleUserWithOutPassword(
+			user.toObject()
+		);
 
-		const token = jwt.sign({ _id: user._id }, secretKey, {
-			expiresIn: "7d",
-		});
-		// Передаем токен в куки
-		const jwtKey: string =
-			NODE_ENV && COOKIES_TOKEN_NAME && NODE_ENV === "production"
-				? COOKIES_TOKEN_NAME
-				: "jwt";
-		res.cookie(jwtKey, token, {
-			maxAge: 3600000 * 24 * 7,
-			httpOnly: true,
-			sameSite: true,
-		});
-		// Предаем статус 200
-		res.status(200).send(SuccessMessage.LOGIN_MESSAGE);
+		const secretKey: string = secretToken(_id.toString());
+
+		res.status(200).json({ secret: secretKey, user: userForSend });
 	} catch (err: any) {
 		if (err.name === "ValidationError") {
 			next(new AppError(ErrorMessage.BAD_REQUEST_CODE, BAD_REQUEST_CODE));

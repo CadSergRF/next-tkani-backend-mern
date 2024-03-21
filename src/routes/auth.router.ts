@@ -6,11 +6,12 @@ import {
 	logout,
 	registration,
 } from "../controllers/auth.controller";
+import authUserMW from "../middlewares/authUser.mw";
 
 const authRouter = express.Router();
 
 authRouter.get("/checkReq", checkReq); // Проверка доступности backend
-authRouter.get("/checkuserlogin", checkUserLogin); // Проверка авторизации пользователя
+authRouter.post("/checkuserlogin", authUserMW, checkUserLogin); // Проверка авторизации пользователя
 authRouter.post("/registration", registration);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);

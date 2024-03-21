@@ -1,29 +1,12 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 
+import { TUser } from "../types/user.types";
+
 import AuthError from "../utils/appError";
 import { AUTH_ERROR_CODE } from "../utils/constants/errorsCode.constants";
 
-export interface IUser {
-	name: string;
-	role: string;
-	email: string;
-	password: string;
-	phoneNumber: string;
-	birthday?: string;
-	clientCard?: string;
-	address?: {
-		postIndex?: string;
-		town: string;
-		streetHome: string;
-		apartment: string;
-		floor?: string;
-		entrance?: string;
-		intercom?: string;
-	};
-}
-
-export const userSchema = new Schema<IUser>(
+export const userSchema = new Schema<TUser>(
 	{
 		name: {
 			type: String,
@@ -59,4 +42,4 @@ export const userSchema = new Schema<IUser>(
 	}
 );
 
-export default model<IUser>("user", userSchema);
+export default model<TUser>("user", userSchema);
