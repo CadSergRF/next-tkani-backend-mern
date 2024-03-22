@@ -1,7 +1,6 @@
 import { CREATED_CODE } from "../utils/constants/errorsCode.constants";
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 import User from "../models/user.model";
 
@@ -17,14 +16,11 @@ import {
 	SuccessMessage,
 	ErrorMessage,
 } from "../utils/constants/responseMessage.constants";
-import { TUserFull } from "../types/user.types";
-
-const { NODE_ENV, JWT_SECRET } = process.env;
-
-const handleUserWithOutPassword = (user: TUserFull) => {
-	const { password, ...userWithOutPassword } = user;
-	return userWithOutPassword;
-};
+import { TUser } from "../types/user.types";
+import {
+	handleCreateUser,
+	handleResShortUserData,
+} from "../utils/helpers/user.helper";
 
 const findUser = async (data: string) => {
 	try {
@@ -43,18 +39,6 @@ export const checkReq = (req: Request, res: Response, next: NextFunction) => {
 	next();
 };
 
-const secretToken = (key: string): string => {
-	const secretKey: string =
-		NODE_ENV && JWT_SECRET && NODE_ENV === "production"
-			? JWT_SECRET
-			: "some-secret-key";
-	const token = jwt.sign({ _id: key }, secretKey, {
-		expiresIn: "365d",
-	});
-
-	return token;
-};
-
 export const checkUserLogin = async (
 	req: Request,
 	res: Response,
@@ -68,9 +52,16 @@ export const checkUserLogin = async (
 		}
 
 		// Деструктуризация для id в cookies пользователя в стейт
-		const { _id, password, ...userForSend } = user.toObject();
+		const { personalData, authData } = user.toObject();
+		const { fullName } = personalData;
+		const { acceptedCookies, role } = authData;
 
-		res.json({ loggedIn: true, user: userForSend });
+		res.json({
+			loggedIn: true,
+			userName: fullName,
+			acceptedCookies: acceptedCookies,
+			role: role,
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -81,37 +72,18 @@ export const registration = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const {
-		name,
-		email,
-		password,
-		role,
-		phoneNumber,
-		clientCard,
-		birthday,
-		address,
-	} = req.body;
-
 	try {
-		const hashPassword = await bcrypt.hash(password, 10);
-		const newUser = await User.create({
-			name,
-			email,
-			password: hashPassword,
-			role,
-			phoneNumber,
-			clientCard,
-			birthday,
-			address,
-		});
+		const createUserObject: TUser = await handleCreateUser(req.body);
+		const newUser = await User.create(createUserObject);
 		await newUser.save();
+
 		// Формируем ответ сервера
-		res.status(CREATED_CODE).json({
-			message: `${SuccessMessage.REGISTER_MESSAGE}`,
-			user: newUser,
-		});
+		const shortUserData = handleResShortUserData(newUser.toObject());
+
+		res.status(CREATED_CODE).json(shortUserData);
 	} catch (err: any) {
 		if (err.code === 11000) {
+			console.log(err);
 			next(
 				new AppError(ErrorMessage.DUPLICATE_EMAIL, DUPLICATE_KEY_ERROR)
 			);
@@ -152,7 +124,7 @@ export const login = async (
 			);
 		}
 		// Проверяем пароль
-		const matched = bcrypt.compare(user.password, password);
+		const matched = bcrypt.compare(user.authData.password, password);
 		if (!matched) {
 			throw new AppError(
 				ErrorMessage.BAD_EMAIL_OR_PASSWORD,
@@ -160,14 +132,11 @@ export const login = async (
 			);
 		}
 
-		// Деструктуризация для id в cookies пользователя в стейт
-		const { _id, ...userForSend } = handleUserWithOutPassword(
-			user.toObject()
-		);
+		const shortUserData = handleResShortUserData(user.toObject());
 
-		const secretKey: string = secretToken(_id.toString());
+		// const secretKey: string = secretToken(_id.toString());
 
-		res.status(200).json({ secret: secretKey, user: userForSend });
+		res.status(200).json(shortUserData);
 	} catch (err: any) {
 		if (err.name === "ValidationError") {
 			next(new AppError(ErrorMessage.BAD_REQUEST_CODE, BAD_REQUEST_CODE));

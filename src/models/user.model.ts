@@ -1,41 +1,77 @@
 import { Schema, model } from "mongoose";
-import bcrypt from "bcryptjs";
 
-import { TUser } from "../types/user.types";
+import {
+	TUser,
+	TUserAddress,
+	TUserAuthData,
+	TUserFullName,
+	TUserMarketingData,
+	TUserPersonalData,
+} from "../types/user.types";
 
-import AuthError from "../utils/appError";
-import { AUTH_ERROR_CODE } from "../utils/constants/errorsCode.constants";
+const fullNameSchema = new Schema<TUserFullName>({
+	name: {
+		type: String,
+		minlength: [3, "Символов в названии должно быть от 3 до 30"],
+		maxlength: [30, "Символов в названии должно быть от 3 до 30"],
+	},
+	surname: {
+		type: String,
+		minlength: [3, "Символов в названии должно быть от 3 до 30"],
+		maxlength: [30, "Символов в названии должно быть от 3 до 30"],
+	},
+	middleName: {
+		type: String,
+		default: "-",
+		maxlength: [30, "Символов в названии должно быть от 3 до 30"],
+	},
+});
+
+const personalDataSchema = new Schema<TUserPersonalData>({
+	fullName: fullNameSchema,
+	birthday: { type: String, default: "-" },
+	email: {
+		type: String,
+		required: [true, 'Поле "email" должно быть заполнено'],
+		unique: true,
+	},
+	phone: { type: String, default: "-" },
+});
+
+const addressSchema = new Schema<TUserAddress>({
+	postIndex: { type: String, default: "-" },
+	town: { type: String, default: "-" },
+	streetHome: { type: String, default: "-" },
+	apartment: { type: String, default: "-" },
+	floor: { type: String, default: "-" },
+	entrance: { type: String, default: "-" },
+	intercom: { type: String, default: "-" },
+});
+
+const authDataSchema = new Schema<TUserAuthData>({
+	role: { type: String, default: "user" },
+	password: {
+		type: String,
+		required: [true, 'Поле "Пароль" должно быть заполнено'],
+		select: false,
+	},
+	acceptedCookies: { type: Boolean, default: false },
+});
+
+const marketingDataSchema = new Schema<TUserMarketingData>({
+	clientCard: { type: String, default: "-" },
+});
 
 export const userSchema = new Schema<TUser>(
 	{
-		name: {
-			type: String,
-			minlength: [3, "Символов в названии должно быть от 3 до 30"],
-			maxlength: [100, "Символов в названии должно быть от 3 до 100"],
-		},
-		role: { type: String, default: "user" },
-		email: {
-			type: String,
-			required: [true, 'Поле "email" должно быть заполнено'],
-			unique: true,
-		},
-		password: {
-			type: String,
-			required: [true, 'Поле "Пароль" должно быть заполнено'],
-			select: false,
-		},
-		phoneNumber: { type: String, default: "-" },
-		birthday: { type: String, default: "-" },
-		clientCard: { type: String, default: "-" },
-		address: {
-			postIndex: { type: String, default: "-" },
-			town: { type: String, default: "-" },
-			streetHome: { type: String, default: "-" },
-			apartment: { type: String, default: "-" },
-			floor: { type: String, default: "-" },
-			entrance: { type: String, default: "-" },
-			intercom: { type: String, default: "-" },
-		},
+		// Личные данные пользователя
+		personalData: personalDataSchema,
+		// Адрес пользователя
+		address: addressSchema,
+		// Данные разрешения доступа и авторизации
+		authData: authDataSchema,
+		// Данные для маркетинга
+		marketingData: marketingDataSchema,
 	},
 	{
 		versionKey: false,
