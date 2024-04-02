@@ -51,17 +51,9 @@ export const checkUserLogin = async (
 			throw new AppError(ErrorMessage.NOT_FOUND_USER, NOT_FOUND_CODE);
 		}
 
-		// Деструктуризация для id в cookies пользователя в стейт
-		const { personalData, authData } = user.toObject();
-		const { fullName } = personalData;
-		const { acceptedCookies, role } = authData;
+		const shortUserData = handleResShortUserData(user.toObject());
 
-		res.json({
-			loggedIn: true,
-			userName: fullName,
-			acceptedCookies: acceptedCookies,
-			role: role,
-		});
+		res.status(200).json(shortUserData);
 	} catch (err) {
 		next(err);
 	}
@@ -110,12 +102,14 @@ export const login = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	console.log("login");
+	console.log("login", req.body);
 
 	const { email, password } = req.body;
 
 	try {
-		const user = await User.findOne({ email }).select("+password");
+		const user = await User.findOne({ "personalData.email": email }).select(
+			"+authData.password"
+		);
 		// Пользователь есть?
 		if (!user) {
 			throw new AppError(
@@ -125,6 +119,7 @@ export const login = async (
 		}
 		// Проверяем пароль
 		const matched = bcrypt.compare(user.authData.password, password);
+
 		if (!matched) {
 			throw new AppError(
 				ErrorMessage.BAD_EMAIL_OR_PASSWORD,
@@ -133,8 +128,6 @@ export const login = async (
 		}
 
 		const shortUserData = handleResShortUserData(user.toObject());
-
-		// const secretKey: string = secretToken(_id.toString());
 
 		res.status(200).json(shortUserData);
 	} catch (err: any) {
