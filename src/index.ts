@@ -30,6 +30,7 @@ app.use(express.json())
 			credentials: true,
 		})
 	)
+	.use("/static", express.static("imageStore"))
 	.use(bodyParser.json())
 	.use(helmet())
 	.use(cookieParser())

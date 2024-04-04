@@ -59,14 +59,38 @@ const adminDeleteProduct = async (
 	}
 };
 
+const adminVisibleProduct = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { id, visible } = req.body;
+	console.log(req.body);
+	try {
+		const card = await ProductItem.findByIdAndUpdate<TProduct>(id, {
+			"configCard.visible": visible,
+		});
+		if (!card) {
+			throw new Error(
+				"Ошибка обновления. Карточка с указанным id не найдена"
+			);
+		}
+		// return res.send(card);
+	} catch (err) {
+		console.log(`Ошибка изменения видимости карточки ${err}`);
+		next(err);
+	}
+};
+
 const adminEditProduct = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
+	console.log(req.body);
 	try {
 		const card = await ProductItem.findByIdAndUpdate<TProduct>(
-			req.body.id,
+			req.body._id,
 			req.body
 		);
 		if (!card) {
@@ -87,7 +111,7 @@ const adminUploadImageProduct = async (
 	next: NextFunction
 ) => {
 	try {
-		res.status(200).send({ message: "Файл загружен" });
+		res.status(200).send({ filename: `${req.file?.originalname}` });
 	} catch (err) {
 		console.log("Ошибка в контроллере ", err);
 		next;
@@ -98,6 +122,7 @@ export default {
 	adminGetAllProducts,
 	adminCreateProduct,
 	adminDeleteProduct,
+	adminVisibleProduct,
 	adminEditProduct,
 	adminUploadImageProduct,
 };
