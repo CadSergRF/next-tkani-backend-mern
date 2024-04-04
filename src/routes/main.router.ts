@@ -8,6 +8,7 @@ import {
 } from "../controllers/auth.controller";
 import authUserMW from "../middlewares/authUser.mw";
 import cardsRouter from "./cards.router";
+import { adminRouter } from "./admin/admin.router";
 
 const mainRouter = express.Router();
 
@@ -17,5 +18,6 @@ mainRouter.post("/registration", registration);
 mainRouter.post("/login", login);
 mainRouter.post("/logout", logout);
 mainRouter.use("/cards", cardsRouter);
+mainRouter.use("/admin", adminRouter);
 
 export default mainRouter;

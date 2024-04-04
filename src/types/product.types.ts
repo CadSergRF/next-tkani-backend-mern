@@ -1,9 +1,13 @@
 import { Types } from "mongoose";
 
-export type TProductSeo = {
-	header?: string; // Заголовок
-	description?: string; // Описание
-	keyWords?: Types.Array<string>; // Ключевые слова
+export type TProductMainData = {
+	articul: string; // Артикул
+	name: string; // Наименование
+	price: number; // Цена за единицу
+	oldPrice?: number; // "Старая цена" - для акций
+	quantity?: number; // Количество, остаток
+	picture?: string; // Изображение товара
+	description?: string; // Описание товара
 };
 
 export type TProductCharacteristic = {
@@ -15,14 +19,10 @@ export type TProductCharacteristic = {
 	weight?: number; // Плотность или вес за единицу измерения
 };
 
-export type TProductMainData = {
-	articul: string; // Артикул
-	name: string; // Наименование
-	price: number; // Цена за единицу
-	oldPrice?: number; // "Старая цена" - для акций
-	quantity?: number; // Количество, остаток
-	picture?: string; // Изображение товара
-	description?: string; // Описание товара
+export type TProductSeo = {
+	header?: string; // Заголовок
+	description?: string; // Описание
+	keyWords?: Types.Array<string>; // Ключевые слова
 };
 
 export type TProduct = {
