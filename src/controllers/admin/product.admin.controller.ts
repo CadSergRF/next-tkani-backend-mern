@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 import ProductItem from "../../models/product.model";
-import { TProduct } from "../../types/product.types";
+import { TProduct, TProductFull } from "../../types/product.types";
 
 const adminGetAllProducts = async (
 	req: Request,
@@ -9,8 +9,7 @@ const adminGetAllProducts = async (
 	next: NextFunction
 ) => {
 	try {
-		const cards = await ProductItem.find();
-		console.log("cards ", cards);
+		const cards = await ProductItem.find<TProductFull>();
 		return res.json(cards);
 	} catch (err) {
 		console.log(`Ошибка получения всех карточек ${err}`);
@@ -25,7 +24,7 @@ const adminCreateProduct = async (
 ) => {
 	try {
 		const cardsParams = req.body;
-		const findDuplicate = await ProductItem.findOne<TProduct>({
+		const findDuplicate = await ProductItem.findOne<TProductFull>({
 			"mainData.articul": cardsParams.mainData.articul,
 		});
 		if (findDuplicate) {

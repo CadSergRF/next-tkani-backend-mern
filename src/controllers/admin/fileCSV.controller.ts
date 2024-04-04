@@ -2,7 +2,8 @@ import ProductItem from "../../models/product.model";
 
 import { Request, Response, NextFunction } from "express";
 // import { json2csv } from "json-2-csv";
-import { fileParse } from "../../middlewares/parceCSV.middleware";
+import { fileParse } from "../../middlewares/parseCSV.middleware";
+import { TParseResult } from "../../types/intern.types";
 
 // const exportToCSV = async (req: Request, res: Response, next: NextFunction) => {
 // 	try {
@@ -31,8 +32,8 @@ const importFromCSV = async (
 	next: NextFunction
 ) => {
 	try {
-		fileParse();
-		res.status(200).send({ message: "Файл загружен" });
+		const parseResult: TParseResult = await fileParse();
+		res.status(200).send(parseResult);
 	} catch (err) {
 		console.log("Ошибка в контроллере ", err);
 		next;

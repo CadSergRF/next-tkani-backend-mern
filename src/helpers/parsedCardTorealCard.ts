@@ -1,6 +1,7 @@
 import {
 	TProduct,
 	TProductCharacteristic,
+	TProductConfigCard,
 	TProductMainData,
 	TProductSeo,
 } from "../types/product.types";
@@ -25,6 +26,10 @@ export const ParsedToReal = (data: any) => {
 			description: undefined,
 			keyWords: undefined,
 		},
+		configCard: {
+			visible: data.configCard_visible,
+			promo: undefined,
+		},
 	};
 	const mainData: TProductMainData = {
 		articul: "",
@@ -33,6 +38,9 @@ export const ParsedToReal = (data: any) => {
 	};
 	const characteristic: TProductCharacteristic = {};
 	const seoTags: TProductSeo = {};
+	const configCard: TProductConfigCard = {
+		visible: true,
+	};
 	mainData.articul = data.mainData_articul;
 	mainData.name = data.mainData_name;
 	mainData.price = data.mainData_price;
@@ -49,10 +57,13 @@ export const ParsedToReal = (data: any) => {
 	seoTags.header = data.seoTags_header || "";
 	seoTags.description = data.seoTags_description || "";
 	seoTags.keyWords = data.seoTags_keyWords || "";
+	configCard.visible = data.configCard_visible;
+	configCard.promo = data.configCard_promo || false;
 
 	realCard.mainData = mainData;
 	realCard.characteristic = characteristic;
 	realCard.seoTags = seoTags;
+	realCard.configCard = configCard;
 
 	return realCard;
 };

@@ -2,6 +2,7 @@ import { Schema, model, Types } from "mongoose";
 import {
 	TProduct,
 	TProductCharacteristic,
+	TProductConfigCard,
 	TProductMainData,
 	TProductSeo,
 } from "../types/product.types";
@@ -31,11 +32,17 @@ const productSeaTagsSchema = new Schema<TProductSeo>({
 	keyWords: [String],
 });
 
+const productConfigCardSchema = new Schema<TProductConfigCard>({
+	visible: { type: Boolean, required: true, default: true },
+	promo: { type: Boolean },
+});
+
 const productSchema = new Schema<TProduct>(
 	{
 		mainData: productMainDataSchema,
 		characteristic: productCharacteristicSchema,
 		seoTags: productSeaTagsSchema,
+		configCard: productConfigCardSchema,
 	},
 	{
 		versionKey: false,

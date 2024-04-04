@@ -25,10 +25,16 @@ export type TProductSeo = {
 	keyWords?: Types.Array<string>; // Ключевые слова
 };
 
+export type TProductConfigCard = {
+	visible: boolean;
+	promo?: boolean;
+};
+
 export type TProduct = {
 	mainData: TProductMainData;
 	characteristic: TProductCharacteristic;
 	seoTags: TProductSeo;
+	configCard: TProductConfigCard;
 };
 
 export type TProductId = {
