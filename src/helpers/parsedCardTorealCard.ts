@@ -59,6 +59,7 @@ export const ParsedToReal = (data: any) => {
 	seoTags.keyWords = data.seoTags_keyWords || "";
 	configCard.visible = data.configCard_visible;
 	configCard.promo = data.configCard_promo || false;
+	configCard.section = data.configCard_section || "";
 
 	realCard.mainData = mainData;
 	realCard.characteristic = characteristic;

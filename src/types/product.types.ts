@@ -16,7 +16,7 @@ export type TProductCharacteristic = {
 	color?: string; // Основной цвет
 	countryOfOrigin?: string; // Страна производитель
 	composition?: string; // Состав ткани
-	weight?: number; // Плотность или вес за единицу измерения
+	weight?: string; // Плотность или вес за единицу измерения
 };
 
 export type TProductSeo = {
@@ -28,6 +28,7 @@ export type TProductSeo = {
 export type TProductConfigCard = {
 	visible: boolean;
 	promo?: boolean;
+	section?: string;
 };
 
 export type TProduct = {

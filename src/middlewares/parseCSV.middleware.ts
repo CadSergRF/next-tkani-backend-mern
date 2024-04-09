@@ -47,6 +47,8 @@ const fileParse = async () => {
 			}
 		} catch (error) {
 			errorsIndexItem.push({ index: i, error: `${error}` });
+			console.log("Строка ", i);
+			console.log("Ошибка ", error);
 		}
 	}
 

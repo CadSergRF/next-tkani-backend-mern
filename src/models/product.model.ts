@@ -23,7 +23,7 @@ const productCharacteristicSchema = new Schema<TProductCharacteristic>({
 	color: String,
 	countryOfOrigin: String,
 	composition: String,
-	weight: Number,
+	weight: String,
 });
 
 const productSeaTagsSchema = new Schema<TProductSeo>({
@@ -35,6 +35,7 @@ const productSeaTagsSchema = new Schema<TProductSeo>({
 const productConfigCardSchema = new Schema<TProductConfigCard>({
 	visible: { type: Boolean, required: true, default: true },
 	promo: { type: Boolean },
+	section: { type: String },
 });
 
 const productSchema = new Schema<TProduct>(
