@@ -27,6 +27,7 @@ const adminGetAllSearchProducts = async (
 		const { section, searchStr, sortStr, paginationLimit, paginationPage } =
 			req.query;
 		let queryOptions: any = {};
+		let sortOption: any = {};
 		let limit = 0;
 		let offSet = 0;
 
@@ -41,8 +42,14 @@ const adminGetAllSearchProducts = async (
 			limit = +paginationLimit;
 			offSet = (page - 1) * limit;
 		}
+		if (sortStr === "articulDown") {
+			sortOption["mainData.articul"] = 1;
+		} else if (sortStr === "articulUp") {
+			sortOption["mainData.articul"] = -1;
+		}
 		const countTotalCards = await ProductItem.countDocuments(queryOptions);
 		const cards = await ProductItem.find<TProductFull>(queryOptions)
+			.sort(sortOption)
 			.skip(offSet)
 			.limit(limit);
 
