@@ -29,6 +29,7 @@ export type TProductConfigCard = {
 	visible: boolean;
 	promo?: boolean;
 	section?: string;
+	measure?: string;
 };
 
 export type TProduct = {

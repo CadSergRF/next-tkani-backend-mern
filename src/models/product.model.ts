@@ -36,6 +36,7 @@ const productConfigCardSchema = new Schema<TProductConfigCard>({
 	visible: { type: Boolean, required: true, default: true },
 	promo: { type: Boolean },
 	section: { type: String },
+	measure: { type: String },
 });
 
 const productSchema = new Schema<TProduct>(
