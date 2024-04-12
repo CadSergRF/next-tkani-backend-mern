@@ -1,3 +1,4 @@
+import { sectionName } from "./../utils/constants/catalog.constants";
 import { Request, Response, NextFunction } from "express";
 
 import ProductItem from "../models/product.model";
@@ -25,11 +26,11 @@ const userGetSearchAllProducts = async (
 ) => {
 	try {
 		const {
-			section,
-			picture,
-			color,
-			searchStr,
-			sortStr,
+			sectionName,
+			pictureName,
+			colorName,
+			searchName,
+			sortName,
 			paginationLimit,
 			paginationPage,
 		} = req.query;
@@ -41,30 +42,63 @@ const userGetSearchAllProducts = async (
 		let limit = 0;
 		let offSet = 0;
 
-		if (section !== "Все" || "") {
-			queryOptions["configCard.section"] = section;
+		if (sectionName !== "Все" || "") {
+			queryOptions["configCard.section"] = sectionName;
 		}
-		if (picture && typeof picture === "string") {
-			pictureOption.$in = picture.split(",");
+
+		if (pictureName && typeof pictureName === "string") {
+			pictureOption.$in = pictureName.split(",");
 			queryOptions["characteristic.picture"] = pictureOption;
 		}
-		if (color && typeof color === "string") {
-			colorOption.$in = color.split(",");
+
+		if (colorName && typeof colorName === "string") {
+			colorOption.$in = colorName.split(",");
 			queryOptions["characteristic.color"] = colorOption;
 		}
-		if (searchStr) {
-			queryOptions["mainData.articul"] = searchStr;
+
+		if (searchName) {
+			queryOptions = {};
+			queryOptions.$or = [
+				{
+					"mainData.name": {
+						$regex: `${searchName}`,
+						$options: "i",
+					},
+				},
+				{
+					"mainData.articul": {
+						$regex: `${searchName}`,
+						$options: "i",
+					},
+				},
+				{
+					"mainData.description": {
+						$regex: `${searchName}`,
+						$options: "i",
+					},
+				},
+				{
+					"characteristic.color": {
+						$regex: `${searchName}`,
+						$options: "i",
+					},
+				},
+			];
 		}
+
 		if (paginationPage && paginationLimit) {
 			let page = +paginationPage;
 			limit = +paginationLimit;
 			offSet = (page - 1) * limit;
 		}
-		if (sortStr === "articulDown") {
-			sortOption["mainData.articul"] = 1;
-		} else if (sortStr === "articulUp") {
-			sortOption["mainData.articul"] = -1;
+		if (sortName === "priceDown") {
+			sortOption["mainData.price"] = -1;
+		} else if (sortName === "priceUp") {
+			sortOption["mainData.price"] = 1;
 		}
+
+		console.log(queryOptions);
+		console.log(sortOption);
 
 		const countTotalCards = await ProductItem.countDocuments(queryOptions);
 		const cards = await ProductItem.find<TProductFull>(queryOptions)
