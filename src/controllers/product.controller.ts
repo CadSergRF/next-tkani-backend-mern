@@ -97,9 +97,6 @@ const userGetSearchAllProducts = async (
 			sortOption["mainData.price"] = 1;
 		}
 
-		console.log(queryOptions);
-		console.log(sortOption);
-
 		const countTotalCards = await ProductItem.countDocuments(queryOptions);
 		const cards = await ProductItem.find<TProductFull>(queryOptions)
 			.sort(sortOption)
